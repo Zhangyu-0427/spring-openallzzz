@@ -23,14 +23,14 @@ public class OpenallzzzApplicationContext { // 容器类
         for (String beanName : beanDefinitionMap.keySet()) {
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
             if (beanDefinition.getScope().equals("singleton")) {
-                Object bean = createBean(beanDefinition);
+                Object bean = createBean(beanName, beanDefinition);
                 singletonObjects.put(beanName, bean);
             }
         }
 
     }
 
-    public Object createBean(BeanDefinition beanDefinition) {
+    public Object createBean(String beanName, BeanDefinition beanDefinition) {
         Class<?> clazz = beanDefinition.getClazz();
         try {
             Object instance = clazz.getDeclaredConstructor().newInstance();
@@ -43,6 +43,10 @@ public class OpenallzzzApplicationContext { // 容器类
                     field.setAccessible(true); // 私有属性设置可访问的
                     field.set(instance, bean);
                 }
+            }
+
+            if (instance instanceof BeanNameAware) {
+                ((BeanNameAware)instance).setBeanName(beanName);
             }
 
             return instance;
@@ -65,7 +69,7 @@ public class OpenallzzzApplicationContext { // 容器类
                 return singletonObjects.get(beanName);
             } else {
                 // 创建bean对象（原型bean）
-                return createBean(beanDefinition);
+                return createBean(beanName, beanDefinition);
             }
         } else {
             // 不存在对应的bean
