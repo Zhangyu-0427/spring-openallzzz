@@ -1,6 +1,7 @@
 package com.spring;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,16 @@ public class OpenallzzzApplicationContext { // 容器类
         Class<?> clazz = beanDefinition.getClazz();
         try {
             Object instance = clazz.getDeclaredConstructor().newInstance();
+
+            // 依赖注入（DI） -- 创建bean的时候才需要进行的操作
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field field : declaredFields) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    Object bean = getBean(field.getName()); // byName实现依赖注入
+                    field.setAccessible(true); // 私有属性设置可访问的
+                    field.set(instance, bean);
+                }
+            }
 
             return instance;
         } catch (InstantiationException e) {
