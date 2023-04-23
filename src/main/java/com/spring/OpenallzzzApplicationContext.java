@@ -24,7 +24,7 @@ public class OpenallzzzApplicationContext { // 容器类
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
             if (beanDefinition.getScope().equals("singleton")) {
                 Object bean = createBean(beanName, beanDefinition);
-                singletonObjects.put(beanName, bean);
+                singletonObjects.put(beanName, bean); // 初始化单例池
             }
         }
 
@@ -45,8 +45,18 @@ public class OpenallzzzApplicationContext { // 容器类
                 }
             }
 
+            // Aware回调 -- 设置bean的名称
             if (instance instanceof BeanNameAware) {
-                ((BeanNameAware)instance).setBeanName(beanName);
+                ((BeanNameAware) instance).setBeanName(beanName);
+            }
+
+            // 初始化
+            if (instance instanceof InitializingBean) {
+                try {
+                    ((InitializingBean) instance).afterPropertiesSet();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             return instance;
