@@ -9,6 +9,12 @@ public class UserService implements BeanNameAware, InitializingBean {
     @Autowired
     private OrderService orderService;
 
+    private String name;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     private String beanName;
 
     @Override
@@ -19,6 +25,7 @@ public class UserService implements BeanNameAware, InitializingBean {
     public void test() {
         System.out.println(orderService);
         System.out.println(beanName);
+        System.out.println(name);
     }
 
     @Override

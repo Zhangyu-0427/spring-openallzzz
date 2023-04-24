@@ -4,6 +4,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OpenallzzzApplicationContext { // 容器类
@@ -12,6 +14,7 @@ public class OpenallzzzApplicationContext { // 容器类
 
     private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>(); // 单例bean池
     private ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(); // bean定义池
+    private List<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
     public OpenallzzzApplicationContext(Class<?> configClass) {
         this.configClass = configClass;
@@ -27,7 +30,6 @@ public class OpenallzzzApplicationContext { // 容器类
                 singletonObjects.put(beanName, bean); // 初始化单例池
             }
         }
-
     }
 
     public Object createBean(String beanName, BeanDefinition beanDefinition) {
@@ -50,6 +52,10 @@ public class OpenallzzzApplicationContext { // 容器类
                 ((BeanNameAware) instance).setBeanName(beanName);
             }
 
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessBeforeInitialization(instance, beanName);
+            }
+
             // 初始化
             if (instance instanceof InitializingBean) {
                 try {
@@ -58,6 +64,13 @@ public class OpenallzzzApplicationContext { // 容器类
                     e.printStackTrace();
                 }
             }
+
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessAfterInitialization(instance, beanName);
+            }
+
+            // BeanPostProcessor
+
 
             return instance;
         } catch (InstantiationException e) {
@@ -117,6 +130,13 @@ public class OpenallzzzApplicationContext { // 容器类
                         if (aClass.isAnnotationPresent(Component.class)) { // 当前类是一个bean
                             // 解析类，判断当前bean是单例bean，还是prototype的bean
                             // 生成 --> BeanDefinition
+
+                            if (BeanPostProcessor.class.isAssignableFrom(aClass)) {
+                                BeanPostProcessor instance = (BeanPostProcessor) aClass
+                                        .getDeclaredConstructor().newInstance();
+                                beanPostProcessorList.add(instance);
+                            }
+
                             Component componentAnnotation = aClass.getDeclaredAnnotation(Component.class);
                             String beanName = componentAnnotation.value();
 
@@ -135,6 +155,14 @@ public class OpenallzzzApplicationContext { // 容器类
                         }
                     } catch (ClassNotFoundException e) {
                         e.getStackTrace();
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (InstantiationException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
