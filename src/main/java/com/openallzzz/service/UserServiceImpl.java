@@ -6,8 +6,8 @@ import com.spring.*;
 @Scope("prototype")
 public class UserServiceImpl implements UserService, InitializingBean, BeanNameAware{
 
-    @Autowired
-    private OrderService orderService;
+    // @Autowired
+    // private OrderService orderService;
 
     private String name;
 
@@ -18,7 +18,7 @@ public class UserServiceImpl implements UserService, InitializingBean, BeanNameA
     private String beanName;
 
     public void test() {
-        System.out.println(orderService);
+        // System.out.println(orderService);
         System.out.println(beanName);
         System.out.println(name);
     }
@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService, InitializingBean, BeanNameA
     @Override
     public void afterPropertiesSet() throws Exception {
         setName("小小的bean~");
-        System.out.println("哎呦你干嘛~");
+        System.out.println("初始化中：InitializingBean.afterPropertiesSet()");
     }
 
     @Override
