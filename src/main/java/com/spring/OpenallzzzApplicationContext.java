@@ -33,11 +33,13 @@ public class OpenallzzzApplicationContext { // 容器类
     }
 
     public Object createBean(String beanName, BeanDefinition beanDefinition) {
+        // 1. 调用BeanDefinition获取bean的定义信息
         Class<?> clazz = beanDefinition.getClazz();
         try {
+            // 2. 构造函数
             Object instance = clazz.getDeclaredConstructor().newInstance();
 
-            // 依赖注入（DI） -- 创建bean的时候才需要进行的操作
+            // 3. 依赖注入（DI） -- 创建bean的时候才需要进行的操作
             Field[] declaredFields = clazz.getDeclaredFields();
             for (Field field : declaredFields) {
                 if (field.isAnnotationPresent(Autowired.class)) {
@@ -47,16 +49,17 @@ public class OpenallzzzApplicationContext { // 容器类
                 }
             }
 
-            // Aware回调 -- 设置bean的名称
+            // 4. Aware回调 -- 设置bean的名称
             if (instance instanceof BeanNameAware) {
                 ((BeanNameAware) instance).setBeanName(beanName);
             }
 
+            // 5. postProcessBeforeInitialization
             for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
                 instance = beanPostProcessor.postProcessBeforeInitialization(instance, beanName);
             }
 
-            // 初始化
+            // 6. 初始化
             if (instance instanceof InitializingBean) {
                 try {
                     ((InitializingBean) instance).afterPropertiesSet();
@@ -65,12 +68,10 @@ public class OpenallzzzApplicationContext { // 容器类
                 }
             }
 
+            // 7. postProcessAfterInitialization
             for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
                 instance = beanPostProcessor.postProcessAfterInitialization(instance, beanName);
             }
-
-            // BeanPostProcessor
-
 
             return instance;
         } catch (InstantiationException e) {
